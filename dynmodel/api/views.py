@@ -71,6 +71,7 @@ def update_table(request, id):
     {
         "make": "character",
         "model": "character",
+        "year": "character",
         "make_year": "integer",
         "licence_valid_year": "integer"
     }
@@ -79,6 +80,8 @@ def update_table(request, id):
     fields = convert_input_types(request.data)
     mdl = DynamicModel(id)
     mdl.update_model(fields)
+
+    admin.site.register(mdl.as_model())
 
     return Response({'id': id})
 

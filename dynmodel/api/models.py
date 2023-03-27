@@ -1,16 +1,13 @@
 from django.db import models
-from typing import Any
 
 
 class DynamicTable(models.Model):
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
-
-        # self._registry = ModelRegistry(self.app_label)
-        # model = self._registry.get_model(self.model_name)
+    # class with just id column
+    pass
 
 
 TYPE_DEFINITIONS = [('c', 'character',), ('b', 'boolean',), ('i', 'integer')]
+
 
 class DynamicField(models.Model):
 

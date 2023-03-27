@@ -24,6 +24,12 @@ SECRET_KEY = env('SECRET_KEY')
 
 ALLOWED_HOSTS = []
 
+DYNAMIC_MODELS = {
+    # default prefix for dynamic tables
+    'DYNAMIC_TABLE_PREFIX': 'dyntbl_',
+    'DEFAULT_CHAR_LENGHT': 255,
+}
+
 
 # Application definition
 
@@ -34,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'rest_framework',
     'api',
 ]
