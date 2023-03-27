@@ -21,7 +21,7 @@ class DynamicModel:
 
         for name, fld_type in fields.items():
             DynamicField.objects.create(name=name, fld_type=fld_type, table_def=new_table)
-        
+
         model_fields = self._convert_to_types(fields)
         self._build_model_cls(model_fields)
         self._create_table()
@@ -62,7 +62,8 @@ class DynamicModel:
 
     def as_model(self) -> models.Model:
         if not self.model_class:
-            fields = DynamicField.objects.filter(table_def_id=self.model_id)
+            model = DynamicTable.objects.get(id=self.model_id)
+            fields = DynamicField.objects.filter(table_def=model)
             model_def = self._convert_qs_types(fields)
 
             self._build_model_cls(model_def)

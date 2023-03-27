@@ -1,9 +1,12 @@
 from django.contrib import admin
+from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+from rest_framework import status
 
 from .models import TYPE_DEFINITIONS
 from .serializers import generic_serializer
@@ -24,6 +27,8 @@ def convert_type(in_type: str) -> str:
     for typ_id, name in TYPE_DEFINITIONS:
         if name == in_type:
             return typ_id
+        
+    raise ValueError(f'Unknown type "{in_type}')
 
 
 def convert_input_types(in_type: dict[str, str]) -> dict[str, str]:
@@ -50,12 +55,19 @@ def create_table(request):
     }
 
     """
-    fields = convert_input_types(request.data)
+    if not request.data:
+        return Response({'error': 'datamodel cannot be empty'}, status=400)
+
+    try:
+        fields = convert_input_types(request.data)
+    except ValueError as exc:
+        return Response({'error': str(exc)}, status=400)
 
     mdl = DynamicModel()
     id = mdl.create_model(fields)
 
-    admin.site.register(mdl.as_model())
+    if settings.DYNAMIC_MODELS['REGISTER_MODEL_IN_ADMIN']:
+        admin.site.register(mdl.as_model())
 
     return Response({'id': id}, status=201)
 
@@ -77,11 +89,19 @@ def update_table(request, id):
     }
 
     """
-    fields = convert_input_types(request.data)
+    if not request.data:
+        return Response({'error': 'datamodel cannot be empty'}, status=400)
+
+    try:
+        fields = convert_input_types(request.data)
+    except ValueError as exc:
+        return Response({'error': str(exc)}, status=400)
+
     mdl = DynamicModel(id)
     mdl.update_model(fields)
 
-    admin.site.register(mdl.as_model())
+    if settings.DYNAMIC_MODELS['REGISTER_MODEL_IN_ADMIN']:
+        admin.site.register(mdl.as_model())
 
     return Response({'id': id})
 
@@ -98,7 +118,10 @@ def create_row(request, id):
         "valid_license": true
     }
     """
-    model_cls = DynamicModel(id).as_model()
+    try:
+        model_cls = DynamicModel(id).as_model()
+    except ObjectDoesNotExist:
+        return Response({'error': 'Table with id "{id}" does not exisits'}, status=status.HTTP_404_NOT_FOUND)
 
     serializer_cls = generic_serializer(model_cls)
     serializer = serializer_cls(data=request.data)
@@ -112,7 +135,10 @@ def create_row(request, id):
 
 @api_view(['GET'])
 def list_rows(request, id):
-    model_cls = DynamicModel(id).as_model()
+    try:
+        model_cls = DynamicModel(id).as_model()
+    except ObjectDoesNotExist:
+        return Response({'error': 'Table with id "{id}" does not exisits'}, status=status.HTTP_404_NOT_FOUND)
 
     serializer_cls = generic_serializer(model_cls)
     rows = model_cls.objects.all()

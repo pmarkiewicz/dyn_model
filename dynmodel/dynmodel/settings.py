@@ -28,6 +28,7 @@ DYNAMIC_MODELS = {
     # default prefix for dynamic tables
     'DYNAMIC_TABLE_PREFIX': 'dyntbl_',
     'DEFAULT_CHAR_LENGHT': 255,
+    'REGISTER_MODEL_IN_ADMIN': False,
 }
 
 
